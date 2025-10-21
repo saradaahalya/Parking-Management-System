@@ -63,3 +63,12 @@ A **desktop application** that:
 - **Graphs / Trees** *(planned)* — For modeling multi-gate smart allocation.  
 
 ---
+
+##  Tech Stack
+
+- **Language:** Java  
+- **Concepts:** Data Structures and Algorithms  
+- **GUI Framework (Future):** Java Swing  
+- **IDE:** Visual Studio Code / IntelliJ IDEA / Eclipse  
+
+---
