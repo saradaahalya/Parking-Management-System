@@ -17,3 +17,12 @@ This project aims to provide an efficient parking allocation mechanism that mini
 | **Team Members** | Sarada A (24BCB0130)<br>Sreehari Mannodi (24BCI0248)<br>Deepica Kumari (24BAI0038) |
 
 ---
+
+##  Problem Statement
+
+- Parking inside the VIT campus is often hectic and difficult during peak hours.  
+- Faculty waste valuable time searching for available parking spaces.  
+- Lack of a proper management system causes congestion, confusion, and inefficient space utilization.  
+- There is a need for a **smart parking manager** to streamline and automate parking operations inside the campus.
+
+---
