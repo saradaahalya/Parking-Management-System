@@ -36,3 +36,21 @@ A **desktop application** that:
 - Reduces dependency on staff/security and helps avoid congestion.
 
 ---
+
+##  Core Features
+
+-  **Park a Car** — Allocates the nearest available slot using DSA-based logic.  
+-  **Remove a Car** — Frees up the occupied slot efficiently.  
+-  **Display Parking Status** — Shows which slots are occupied or available.  
+-  **Suggest Nearest Available Slot** — Helps users find the closest parking spot quickly.
+
+---
+
+##  Future Enhancements
+
+-  GUI visualization of parking slots using **Java Swing**.  
+-  Search functionality to locate cars by their **number plate**.  
+-  Support for **multiple entry gates** and smart slot allocation based on the user’s preferred block/location.  
+-  Real-time slot tracking and optimization algorithms for dynamic parking areas.
+
+---
