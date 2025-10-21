@@ -26,3 +26,13 @@ This project aims to provide an efficient parking allocation mechanism that mini
 - There is a need for a **smart parking manager** to streamline and automate parking operations inside the campus.
 
 ---
+
+##  Proposed Solution
+
+A **desktop application** that:
+- Simulates a **smart car parking system**.
+- Utilizes **Data Structures & Algorithms** for efficient slot allocation and searching.
+- Provides a **GUI-based visualization** of parking slots.
+- Reduces dependency on staff/security and helps avoid congestion.
+
+---
