@@ -72,3 +72,12 @@ A **desktop application** that:
 - **IDE:** Visual Studio Code / IntelliJ IDEA / Eclipse  
 
 ---
+
+##  Conclusion
+
+- Addresses a **real-life parking problem** inside VIT campus.  
+- Implements a **smart parking management system** for non-linear parking zones.  
+- Combines theoretical **DSA concepts** with a **practical real-world application**.  
+- Lays the groundwork for future **smart campus automation** initiatives.
+
+---
