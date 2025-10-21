@@ -54,3 +54,12 @@ A **desktop application** that:
 -  Real-time slot tracking and optimization algorithms for dynamic parking areas.
 
 ---
+
+##  Data Structures & Algorithms Used
+
+- **Queues / Stacks** — For managing entry and exit sequences.  
+- **Priority Queue / Heap** — To allocate the nearest available slot efficiently.  
+- **Hash Maps** — For quick lookup of car numbers and slot mapping.  
+- **Graphs / Trees** *(planned)* — For modeling multi-gate smart allocation.  
+
+---
