@@ -1,83 +1,107 @@
-#  Parking Management System
+# Advanced Parking Management System 🚗
 
-A **desktop application** that simulates a **smart parking system** inside the VIT campus, built using **Data Structures and Algorithms (DSA)**.  
-This project aims to provide an efficient parking allocation mechanism that minimizes congestion, reduces time spent searching for parking, and optimizes slot utilization.
+A sophisticated Java-based parking management system with both GUI and CLI interfaces.
 
----
+## Features ✨
 
-##  Project Information
+- **Dual Interface**
+  - Modern Swing-based GUI with intuitive controls
+  - Command-line interface for terminal operations
 
-**Review 1 – Data Structures and Algorithm Project**
+- **Smart Parking Management**
+  - VIP slot allocation (20% of total slots)
+  - Dynamic rate management (Regular/VIP/Weekend)
+  - Automatic nearest slot assignment
+  - Real-time revenue tracking
+  - Comprehensive statistics
 
-| Detail | Information |
-|:--|:--|
-| **Project Title** | Parking Management System |
-| **Course** | Data Structures and Algorithm |
-| **Professor** | Prof. Anuradha G |
-| **Team Members** | Sarada A (24BCB0130)<br>Sreehari Mannodi (24BCI0248)<br>Deepica Kumari (24BAI0038) |
+- **Vehicle Management**
+  - Detailed car registration (number plate, owner, type, color)
+  - VIP vehicle support
+  - Smart search functionality
+  - Duration-based billing
 
----
+- **Rate Management**
+  - Configurable rates for different categories
+  - Weekend surcharge support
+  - VIP premium rates
+  - Real-time rate updates
 
-##  Problem Statement
+## Getting Started 🚀
 
-- Parking inside the VIT campus is often hectic and difficult during peak hours.  
-- Faculty waste valuable time searching for available parking spaces.  
-- Lack of a proper management system causes congestion, confusion, and inefficient space utilization.  
-- There is a need for a **smart parking manager** to streamline and automate parking operations inside the campus.
+### Prerequisites
+- Java JDK 11 or higher
+- Any Java IDE (preferably VS Code with Java extensions)
 
----
+### Running the Application
 
-##  Proposed Solution
+1. **Compile the source files:**
+```bash
+javac src/*.java
+```
 
-A **desktop application** that:
-- Simulates a **smart car parking system**.
-- Utilizes **Data Structures & Algorithms** for efficient slot allocation and searching.
-- Provides a **GUI-based visualization** of parking slots.
-- Reduces dependency on staff/security and helps avoid congestion.
+2. **Run the application:**
+```bash
+java src.Main
+```
 
----
+3. **Choose your preferred interface:**
+   - Enter `1` for GUI mode
+   - Enter `2` for CLI mode
 
-##  Core Features
+## Usage Guide 📖
 
--  **Park a Car** — Allocates the nearest available slot using DSA-based logic.  
--  **Remove a Car** — Frees up the occupied slot efficiently.  
--  **Display Parking Status** — Shows which slots are occupied or available.  
--  **Suggest Nearest Available Slot** — Helps users find the closest parking spot quickly.
+### GUI Mode
+- Use the top panel to monitor statistics and update rates
+- Central grid shows parking slot status
+- Bottom panel provides action buttons:
+  - 🅿️ Park Car
+  - 🚫 Remove Car
+  - 🔍 Search Car
+  - 📊 Show Statistics
+  - 🔄 Refresh
 
----
+### CLI Mode
+1. Enter total parking slots when prompted
+2. Use the menu options:
+   - Park a Car
+   - Remove a Car
+   - Display Status
+   - Search Car
+   - Show Statistics
+   - Update Rates
+   - Exit
 
-##  Future Enhancements
+## Rate Structure 💰
 
--  GUI visualization of parking slots using **Java Swing**.  
--  Search functionality to locate cars by their **number plate**.  
--  Support for **multiple entry gates** and smart slot allocation based on the user’s preferred block/location.  
--  Real-time slot tracking and optimization algorithms for dynamic parking areas.
+- **Regular Rate**: $10/hour
+- **VIP Rate**: $20/hour
+- **Weekend Rate**: $15/hour
+- Minimum billing: 1 hour
+- Rates can be updated through GUI or CLI interface
 
----
+## Technical Details 🔧
 
-##  Data Structures & Algorithms Used
+- Built using Java Swing for GUI
+- Implements priority queue for optimal slot allocation
+- Uses HashMap for O(1) car lookup
+- Real-time statistics calculation
+- Event-driven architecture
+- Modern UI with material design colors
 
-- **Queues / Stacks** — For managing entry and exit sequences.  
-- **Priority Queue / Heap** — To allocate the nearest available slot efficiently.  
-- **Hash Maps** — For quick lookup of car numbers and slot mapping.  
-- **Graphs / Trees** *(planned)* — For modeling multi-gate smart allocation.  
+## Future Enhancements 🔮
 
----
+- [ ] Database integration
+- [ ] Payment gateway integration
+- [ ] Monthly pass system
+- [ ] Mobile app integration
+- [ ] Automated license plate recognition
+- [ ] Email notifications
 
-##  Tech Stack
+## Contributing 🤝
 
-- **Language:** Java  
-- **Concepts:** Data Structures and Algorithms  
-- **GUI Framework (Future):** Java Swing  
-- **IDE:** Visual Studio Code / IntelliJ IDEA / Eclipse  
+Feel free to fork this project and submit pull requests. For major changes, please open an issue first.
 
----
+## License 📄
 
-##  Conclusion
-
-- Addresses a **real-life parking problem** inside VIT campus.  
-- Implements a **smart parking management system** for non-linear parking zones.  
-- Combines theoretical **DSA concepts** with a **practical real-world application**.  
-- Lays the groundwork for future **smart campus automation** initiatives.
-
----
+This project is licensed under the MIT License - see the LICENSE file for details.
