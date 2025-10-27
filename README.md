@@ -1,8 +1,8 @@
-# Advanced Parking Management System 🚗
+# Advanced Parking Management System 
 
 A sophisticated Java-based parking management system with both GUI and CLI interfaces.
 
-## Features ✨
+## Features 
 
 - **Dual Interface**
   - Modern Swing-based GUI with intuitive controls
@@ -27,7 +27,7 @@ A sophisticated Java-based parking management system with both GUI and CLI inter
   - VIP premium rates
   - Real-time rate updates
 
-## Getting Started 🚀
+## Getting Started 
 
 ### Prerequisites
 - Java JDK 11 or higher
@@ -49,17 +49,17 @@ java src.Main
    - Enter `1` for GUI mode
    - Enter `2` for CLI mode
 
-## Usage Guide 📖
+## Usage Guide 
 
 ### GUI Mode
 - Use the top panel to monitor statistics and update rates
 - Central grid shows parking slot status
 - Bottom panel provides action buttons:
-  - 🅿️ Park Car
-  - 🚫 Remove Car
-  - 🔍 Search Car
-  - 📊 Show Statistics
-  - 🔄 Refresh
+  -  Park Car
+  -  Remove Car
+  -  Search Car
+  -  Show Statistics
+  -  Refresh
 
 ### CLI Mode
 1. Enter total parking slots when prompted
@@ -72,7 +72,7 @@ java src.Main
    - Update Rates
    - Exit
 
-## Rate Structure 💰
+## Rate Structure 
 
 - **Regular Rate**: $10/hour
 - **VIP Rate**: $20/hour
@@ -80,7 +80,7 @@ java src.Main
 - Minimum billing: 1 hour
 - Rates can be updated through GUI or CLI interface
 
-## Technical Details 🔧
+## Technical Details 
 
 - Built using Java Swing for GUI
 - Implements priority queue for optimal slot allocation
@@ -89,7 +89,7 @@ java src.Main
 - Event-driven architecture
 - Modern UI with material design colors
 
-## Future Enhancements 🔮
+## Future Enhancements 
 
 - [ ] Database integration
 - [ ] Payment gateway integration
@@ -98,10 +98,10 @@ java src.Main
 - [ ] Automated license plate recognition
 - [ ] Email notifications
 
-## Contributing 🤝
+## Contributing 
 
 Feel free to fork this project and submit pull requests. For major changes, please open an issue first.
 
-## License 📄
+## License 
 
 This project is licensed under the MIT License - see the LICENSE file for details.
