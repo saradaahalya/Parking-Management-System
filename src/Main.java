@@ -15,8 +15,12 @@ public class Main {
 
         if (mode == 1) {
             SwingUtilities.invokeLater(() -> {
-                ParkingLot lot = new ParkingLot(20); // Default 20 slots
-                new ParkingUI(lot);
+                // Initialize 5 placeholder regions with 20 slots each (can be customized later)
+                java.util.List<Region> regions = new java.util.ArrayList<>();
+                for (int i = 1; i <= 5; i++) {
+                    regions.add(new Region("Region " + i, new ParkingLot(20)));
+                }
+                new ParkingUI(regions);
             });
         } else {
             runCliMode(sc);
@@ -24,10 +28,14 @@ public class Main {
     }
 
     private static void runCliMode(Scanner sc) {
-        System.out.print("Enter total number of parking slots: ");
-        int totalSlots = sc.nextInt();
+        System.out.print("Enter number of parking slots per region (5 regions will be created): ");
+        int perRegionSlots = sc.nextInt();
 
-        ParkingLot parkingLot = new ParkingLot(totalSlots);
+        java.util.List<Region> regions = new java.util.ArrayList<>();
+        for (int i = 1; i <= 5; i++) {
+            regions.add(new Region("Region " + i, new ParkingLot(perRegionSlots)));
+        }
+
         boolean running = true;
 
         while (running) {
@@ -43,31 +51,95 @@ public class Main {
 
             int choice = sc.nextInt();
             switch (choice) {
-                case 1 -> {
+                case 1: {
                     System.out.print("Enter car number plate: ");
                     String num = sc.next();
                     System.out.print("Is VIP? (y/n): ");
                     boolean isVip = sc.next().toLowerCase().startsWith("y");
-                    parkingLot.parkCar(num, isVip);
+                    // Select region
+                    System.out.println("Select region:");
+                    for (int i = 0; i < regions.size(); i++) {
+                        System.out.printf("%d. %s\n", i + 1, regions.get(i).getName());
+                    }
+                    int r = sc.nextInt();
+                    if (r < 1 || r > regions.size()) r = 1;
+                    // Ensure the car isn't already parked in any region
+                    boolean exists = false;
+                    for (Region reg : regions) {
+                        if (reg.getParkingLot().findCar(num)) { exists = true; break; }
+                    }
+                    if (exists) {
+                        System.out.println("⚠️ A car with this number plate is already parked in a region.");
+                    } else {
+                        regions.get(r - 1).getParkingLot().parkCar(num, isVip);
+                    }
+                    break;
                 }
-                case 2 -> {
+                case 2: {
                     System.out.print("Enter car number plate to remove: ");
                     String num = sc.next();
-                    double charge = parkingLot.removeCar(num);
+                    // Try removing from all regions
+                    double charge = 0.0;
+                    boolean found = false;
+                    for (Region reg : regions) {
+                        if (reg.getParkingLot().findCar(num)) {
+                            charge = reg.getParkingLot().removeCar(num);
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) System.out.println("❌ Car not found in any region.");
                     System.out.printf("Parking charge: $%.2f\n", charge);
+                    break;
                 }
-                case 3 -> parkingLot.displayStatus();
-                case 4 -> {
+                case 3: {
+                    // Display status per region
+                    for (Region reg : regions) {
+                        System.out.println("\n== " + reg.getName() + " ==");
+                        reg.getParkingLot().displayStatus();
+                    }
+                    break;
+                }
+                case 4: {
                     System.out.print("Enter car number plate to search: ");
-                    parkingLot.findCar(sc.next());
+                    String q = sc.next();
+                    boolean found = false;
+                    for (Region reg : regions) {
+                        if (reg.getParkingLot().findCar(q)) {
+                            System.out.println("Found in " + reg.getName());
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) System.out.println("❌ Car not found in any region.");
+                    break;
                 }
-                case 5 -> parkingLot.displayStatistics();
-                case 6 -> updateParkingRates(sc, parkingLot);
-                case 7 -> {
+                case 5: {
+                    for (Region reg : regions) {
+                        System.out.println("\n== Statistics for " + reg.getName() + " ==");
+                        reg.getParkingLot().displayStatistics();
+                    }
+                    break;
+                }
+                case 6: {
+                    // choose region to update rates for
+                    System.out.println("Select region to update rates:");
+                    for (int i = 0; i < regions.size(); i++) {
+                        System.out.printf("%d. %s\n", i + 1, regions.get(i).getName());
+                    }
+                    int r = sc.nextInt(); if (r < 1 || r > regions.size()) r = 1;
+                    updateParkingRates(sc, regions.get(r - 1).getParkingLot());
+                    break;
+                }
+                case 7: {
                     System.out.println("👋 Exiting system. Goodbye!");
                     running = false;
+                    break;
                 }
-                default -> System.out.println("⚠️ Invalid choice! Try again.");
+                default: {
+                    System.out.println("⚠️ Invalid choice! Try again.");
+                    break;
+                }
             }
         }
         sc.close();

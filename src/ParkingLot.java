@@ -128,6 +128,58 @@ public class ParkingLot {
         return availableSlots.poll();
     }
 
+    // Peek an appropriate slot without removing it from available pool
+    public int peekAppropriateSlot(boolean isVip) {
+        if (availableSlots.isEmpty()) return -1;
+        if (isVip) {
+            for (Integer slotId : availableSlots) {
+                Slot s = getSlotById(slotId);
+                if (s != null && s.isVip()) {
+                    return slotId;
+                }
+            }
+            return -1;
+        } else {
+            Integer next = availableSlots.peek();
+            return next == null ? -1 : next;
+        }
+    }
+
+    // Park car at a specific slot id (used when user confirms a suggested slot)
+    public void parkCarAt(String numberPlate, boolean isVip, int slotId) {
+        if (availableSlots.isEmpty()) {
+            System.out.println("❌ Parking Full! No available slots.");
+            return;
+        }
+
+        if (parkedCars.containsKey(numberPlate)) {
+            System.out.println("⚠️ Car already parked!");
+            return;
+        }
+
+        Slot slot = getSlotById(slotId);
+        if (slot == null) {
+            System.out.println("❌ Invalid slot selected.");
+            return;
+        }
+
+        if (slot.isOccupied()) {
+            System.out.println("❌ Selected slot is already occupied.");
+            return;
+        }
+
+        // Remove chosen slot from available pool
+        availableSlots.remove(slotId);
+
+        Car car = new Car(numberPlate);
+        slot.parkCar(car);
+        parkedCars.put(numberPlate, slot);
+        entryTimes.put(numberPlate, java.time.LocalDateTime.now());
+
+        System.out.println("✅ Car " + numberPlate + " parked at " + 
+                         (slot.isVip() ? "VIP " : "") + "Slot " + slot.getId());
+    }
+
     private double calculateParkingCharge(String numberPlate, LocalDateTime entry, 
                                         LocalDateTime exit, boolean isVip) {
         long hours = Duration.between(entry, exit).toHours() + 1;

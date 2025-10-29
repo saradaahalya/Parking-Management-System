@@ -4,18 +4,22 @@ import javax.swing.*;
 import java.awt.*;
 import java.text.DecimalFormat;
 import java.util.HashMap;
+import java.util.List;
 
 public class ParkingUI extends JFrame {
-    private ParkingLot parkingLot;
+    private List<Region> regions;
+    private Region currentRegion;
     private JPanel slotPanel;
     private JTextArea consoleArea;
     private HashMap<Integer, JPanel> slotBoxes;
     private JLabel revenueLabel;
     private JComboBox<String> rateTypeCombo;
     private JTextField rateField;
+    private JComboBox<String> regionCombo;
     
-    public ParkingUI(ParkingLot parkingLot) {
-        this.parkingLot = parkingLot;
+    public ParkingUI(java.util.List<Region> regions) {
+        this.regions = regions;
+        this.currentRegion = (regions == null || regions.isEmpty()) ? null : regions.get(0);
         this.slotBoxes = new HashMap<>();
 
         setTitle("🚗 Smart Parking Manager - Advanced");
@@ -47,6 +51,21 @@ public class ParkingUI extends JFrame {
         revenueLabel = new JLabel("Total Revenue: $0.00");
         revenueLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
         headerPanel.add(revenueLabel);
+        
+        // Region selector
+        JPanel regionPanel = new JPanel();
+        regionCombo = new JComboBox<>();
+        for (Region r : regions) regionCombo.addItem(r.getName());
+        regionCombo.addActionListener(e -> {
+            int idx = regionCombo.getSelectedIndex();
+            if (idx >= 0 && idx < regions.size()) {
+                currentRegion = regions.get(idx);
+                updateSlotDisplay();
+            }
+        });
+        regionPanel.add(new JLabel("Region:"));
+        regionPanel.add(regionCombo);
+        headerPanel.add(regionPanel);
         
         // Rate management
         JPanel ratePanel = new JPanel();
@@ -108,11 +127,24 @@ public class ParkingUI extends JFrame {
 
     private void handleButtonClick(String action) {
         switch (action) {
-            case "Park Car" -> parkCar();
-            case "Remove Car" -> removeCar();
-            case "Search Car" -> searchCar();
-            case "Show Statistics" -> showStatistics();
-            case "Refresh" -> updateSlotDisplay();
+            case "Park Car":
+                parkCar();
+                break;
+            case "Remove Car":
+                removeCar();
+                break;
+            case "Search Car":
+                searchCar();
+                break;
+            case "Show Statistics":
+                showStatistics();
+                break;
+            case "Refresh":
+                updateSlotDisplay();
+                break;
+            default:
+                // no-op
+                break;
         }
     }
 
@@ -121,11 +153,14 @@ public class ParkingUI extends JFrame {
         JTextField ownerField = new JTextField();
         JComboBox<String> typeCombo = new JComboBox<>(new String[]{"REGULAR", "VIP"});
         JTextField colorField = new JTextField();
+        JComboBox<String> dialogRegionCombo = new JComboBox<>();
+        for (Region r : regions) dialogRegionCombo.addItem(r.getName());
 
         Object[] fields = {
             "Number Plate:", plateField,
             "Owner Name:", ownerField,
             "Type:", typeCombo,
+            "Region:", dialogRegionCombo,
             "Color:", colorField
         };
 
@@ -133,17 +168,100 @@ public class ParkingUI extends JFrame {
             "Enter Car Details", JOptionPane.OK_CANCEL_OPTION);
             
         if (result == JOptionPane.OK_OPTION) {
+            String plate = plateField.getText().trim();
+            if (plate.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Number plate cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             boolean isVip = typeCombo.getSelectedItem().equals("VIP");
-            parkingLot.parkCar(plateField.getText(), isVip);
+            int sel = dialogRegionCombo.getSelectedIndex();
+            Region target = (sel >= 0 && sel < regions.size()) ? regions.get(sel) : currentRegion;
+
+            // Ensure uniqueness across all regions
+            for (Region r : regions) {
+                if (r.getParkingLot().findCar(plate)) {
+                    JOptionPane.showMessageDialog(this, "A car with this number plate is already parked in " + r.getName() + ".", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            }
+
+            if (target == null) {
+                JOptionPane.showMessageDialog(this, "No region selected.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            int suggested = target.getParkingLot().peekAppropriateSlot(isVip);
+            if (suggested == -1) {
+                JOptionPane.showMessageDialog(this, "No appropriate slots available in " + target.getName(), "Info", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+
+            int confirm = JOptionPane.showConfirmDialog(this,
+                    String.format("Please go to Slot %d in %s. Click OK to confirm parking.", suggested, target.getName()),
+                    "Confirm Slot",
+                    JOptionPane.OK_CANCEL_OPTION);
+
+            if (confirm == JOptionPane.OK_OPTION) {
+                // actually park at the suggested slot
+                target.getParkingLot().parkCarAt(plate, isVip, suggested);
+                consoleArea.append("Parked " + plate + " in " + target.getName() + " at slot " + suggested + "\n");
+            } else {
+                consoleArea.append("Parking cancelled for " + plate + "\n");
+            }
+
             updateSlotDisplay();
         }
     }
 
     private void removeCar() {
-        String plate = JOptionPane.showInputDialog(this, "Enter Car Number to Remove:");
-        if (plate != null && !plate.trim().isEmpty()) {
-            parkingLot.removeCar(plate);
-            consoleArea.append("Car " + plate + " removed.\n");
+        JTextField plateField = new JTextField();
+        JComboBox<String> dialogRegionCombo = new JComboBox<>();
+        dialogRegionCombo.addItem("All Regions");
+        for (Region r : regions) dialogRegionCombo.addItem(r.getName());
+
+        Object[] fields = {
+            "Number Plate:", plateField,
+            "Region:", dialogRegionCombo
+        };
+
+        int result = JOptionPane.showConfirmDialog(this, fields, "Remove Car", JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION) {
+            String plate = plateField.getText().trim();
+            if (plate.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Number plate cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            int sel = dialogRegionCombo.getSelectedIndex(); // 0 => All Regions, else region index+1
+            boolean removed = false;
+            double charge = 0.0;
+            if (sel == 0) {
+                // search all
+                for (Region r : regions) {
+                    if (r.getParkingLot().findCar(plate)) {
+                        charge = r.getParkingLot().removeCar(plate);
+                        removed = true;
+                        consoleArea.append("Removed from " + r.getName() + "\n");
+                        break;
+                    }
+                }
+            } else {
+                int ridx = sel - 1;
+                if (ridx >= 0 && ridx < regions.size()) {
+                    Region target = regions.get(ridx);
+                    if (target.getParkingLot().findCar(plate)) {
+                        charge = target.getParkingLot().removeCar(plate);
+                        removed = true;
+                        consoleArea.append("Removed from " + target.getName() + "\n");
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Car not found in selected region.", "Info", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+            }
+            consoleArea.append("Car " + plate + (removed ? " removed." : " not found.") + "\n");
+            if (removed) {
+                consoleArea.append(String.format("Parking charge: $%.2f\n", charge));
+            }
             updateSlotDisplay();
         }
     }
@@ -151,7 +269,15 @@ public class ParkingUI extends JFrame {
     private void searchCar() {
         String plate = JOptionPane.showInputDialog(this, "Enter Car Number to Search:");
         if (plate != null && !plate.trim().isEmpty()) {
-            boolean found = parkingLot.findCar(plate);
+            boolean found = false;
+            // Search current region first
+            if (currentRegion != null && currentRegion.getParkingLot().findCar(plate)) {
+                found = true;
+            } else {
+                for (Region r : regions) {
+                    if (r.getParkingLot().findCar(plate)) { found = true; break; }
+                }
+            }
             consoleArea.append(found ? "✅ Car " + plate + " found.\n"
                                      : "❌ Car " + plate + " not found.\n");
         }
@@ -168,7 +294,7 @@ public class ParkingUI extends JFrame {
         
         try {
             double rate = Double.parseDouble(rateValue);
-            parkingLot.setRate(rateType, rate);
+            if (currentRegion != null) currentRegion.getParkingLot().setRate(rateType, rate);
             JOptionPane.showMessageDialog(this, "Rate updated successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Invalid rate value.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -176,8 +302,8 @@ public class ParkingUI extends JFrame {
     }
 
     private void showStatistics() {
-        int totalCars = parkingLot.getTotalCars();
-        double totalRevenue = parkingLot.getTotalRevenue();
+        int totalCars = currentRegion == null ? 0 : currentRegion.getParkingLot().getTotalCars();
+        double totalRevenue = currentRegion == null ? 0.0 : currentRegion.getParkingLot().getTotalRevenue();
         DecimalFormat df = new DecimalFormat("#.##");
         
         String stats = "Total Cars: " + totalCars + "\n" +
@@ -193,13 +319,17 @@ public class ParkingUI extends JFrame {
         button.setFont(new Font("Segoe UI", Font.BOLD, 14));
         button.setPreferredSize(new Dimension(150, 40));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        // Ensure background/foreground are applied on all LookAndFeels (macOS may ignore otherwise)
+        button.setOpaque(true);
+        button.setContentAreaFilled(true);
+        button.setBorderPainted(false);
     }
 
     private void updateSlotDisplay() {
         slotPanel.removeAll();
         slotBoxes.clear();
 
-        int totalSlots = parkingLot.getTotalSlots();
+        int totalSlots = currentRegion == null ? 0 : currentRegion.getParkingLot().getTotalSlots();
         for (int i = 1; i <= totalSlots; i++) {
             JPanel slotBox = new JPanel();
             slotBox.setPreferredSize(new Dimension(80, 80));
@@ -210,7 +340,9 @@ public class ParkingUI extends JFrame {
             label.setFont(new Font("Segoe UI", Font.BOLD, 14));
             slotBox.add(label, BorderLayout.CENTER);
 
-            if (parkingLot.isSlotOccupied(i)) {
+            ParkingLot p = currentRegion == null ? null : currentRegion.getParkingLot();
+            boolean occupied = p != null && p.isSlotOccupied(i);
+            if (occupied) {
                 slotBox.setBackground(new Color(220, 70, 70)); // red
             } else {
                 slotBox.setBackground(new Color(90, 200, 90)); // green
@@ -222,5 +354,10 @@ public class ParkingUI extends JFrame {
 
         slotPanel.revalidate();
         slotPanel.repaint();
+
+        // Update revenue label for the currently selected region
+        double rev = currentRegion == null ? 0.0 : currentRegion.getParkingLot().getTotalRevenue();
+        DecimalFormat df = new DecimalFormat("#.##");
+        revenueLabel.setText("Total Revenue: $" + df.format(rev));
     }
 }
