@@ -15,11 +15,14 @@ public class Main {
 
         if (mode == 1) {
             SwingUtilities.invokeLater(() -> {
-                // Initialize 5 placeholder regions with 20 slots each (can be customized later)
+                // Initialize 6 custom regions with specified slot counts
                 java.util.List<Region> regions = new java.util.ArrayList<>();
-                for (int i = 1; i <= 5; i++) {
-                    regions.add(new Region("Region " + i, new ParkingLot(20)));
-                }
+                regions.add(new Region("PRP Parking", new ParkingLot(50)));
+                regions.add(new Region("SJT Parking", new ParkingLot(25)));
+                regions.add(new Region("TT Parking", new ParkingLot(20)));
+                regions.add(new Region("Lake side Parking", new ParkingLot(25)));
+                regions.add(new Region("Woodys Parking", new ParkingLot(50)));
+                regions.add(new Region("Main gate Parking", new ParkingLot(40)));
                 new ParkingUI(regions);
             });
         } else {
@@ -28,13 +31,14 @@ public class Main {
     }
 
     private static void runCliMode(Scanner sc) {
-        System.out.print("Enter number of parking slots per region (5 regions will be created): ");
-        int perRegionSlots = sc.nextInt();
-
+        // Initialize 6 custom regions with specified slot counts
         java.util.List<Region> regions = new java.util.ArrayList<>();
-        for (int i = 1; i <= 5; i++) {
-            regions.add(new Region("Region " + i, new ParkingLot(perRegionSlots)));
-        }
+        regions.add(new Region("PRP Parking", new ParkingLot(50)));
+        regions.add(new Region("SJT Parking", new ParkingLot(25)));
+        regions.add(new Region("TT Parking", new ParkingLot(20)));
+        regions.add(new Region("Lake side Parking", new ParkingLot(25)));
+        regions.add(new Region("Woodys Parking", new ParkingLot(50)));
+        regions.add(new Region("Main gate Parking", new ParkingLot(40)));
 
         boolean running = true;
 
