@@ -332,12 +332,13 @@ public class ParkingUI extends JFrame {
         int totalSlots = currentRegion == null ? 0 : currentRegion.getParkingLot().getTotalSlots();
         for (int i = 1; i <= totalSlots; i++) {
             JPanel slotBox = new JPanel();
-            slotBox.setPreferredSize(new Dimension(80, 80));
-            slotBox.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 2));
+            // Reduce size from 80x80 to 60x60
+            slotBox.setPreferredSize(new Dimension(60, 60));
+            slotBox.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 1));  // Also made border thinner
             slotBox.setLayout(new BorderLayout());
 
             JLabel label = new JLabel("Slot " + i, JLabel.CENTER);
-            label.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            label.setFont(new Font("Segoe UI", Font.BOLD, 12));  // Reduced font size slightly
             slotBox.add(label, BorderLayout.CENTER);
 
             ParkingLot p = currentRegion == null ? null : currentRegion.getParkingLot();
