@@ -48,7 +48,7 @@ public class ParkingUI extends JFrame {
         
         // Header with stats
         JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 5));
-        revenueLabel = new JLabel("Total Revenue: $0.00");
+        revenueLabel = new JLabel("Total Revenue: ₹0.00");
         revenueLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
         headerPanel.add(revenueLabel);
         
@@ -260,7 +260,7 @@ public class ParkingUI extends JFrame {
             }
             consoleArea.append("Car " + plate + (removed ? " removed." : " not found.") + "\n");
             if (removed) {
-                consoleArea.append(String.format("Parking charge: $%.2f\n", charge));
+                consoleArea.append(String.format("Parking charge: ₹%.2f\n", charge));
             }
             updateSlotDisplay();
         }
@@ -294,7 +294,7 @@ public class ParkingUI extends JFrame {
         
         try {
             double rate = Double.parseDouble(rateValue);
-            if (currentRegion != null) currentRegion.getParkingLot().setRate(rateType, rate);
+            if (currentRegion != null) currentRegion.getParkingLot().updateParkingRate(rateType, rate);
             JOptionPane.showMessageDialog(this, "Rate updated successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Invalid rate value.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -307,7 +307,7 @@ public class ParkingUI extends JFrame {
         DecimalFormat df = new DecimalFormat("#.##");
         
         String stats = "Total Cars: " + totalCars + "\n" +
-                       "Total Revenue: $" + df.format(totalRevenue);
+                       "Total Revenue: ₹" + df.format(totalRevenue);
         
         JOptionPane.showMessageDialog(this, stats, "Parking Statistics", JOptionPane.INFORMATION_MESSAGE);
     }
@@ -359,6 +359,6 @@ public class ParkingUI extends JFrame {
         // Update revenue label for the currently selected region
         double rev = currentRegion == null ? 0.0 : currentRegion.getParkingLot().getTotalRevenue();
         DecimalFormat df = new DecimalFormat("#.##");
-        revenueLabel.setText("Total Revenue: $" + df.format(rev));
+        revenueLabel.setText("Total Revenue: ₹" + df.format(rev));
     }
 }

@@ -10,6 +10,7 @@ public class ParkingLot {
     private Map<String, Slot> parkedCars;
     private Map<String, Double> parkingRates;
     private Map<String, LocalDateTime> entryTimes;
+    private Map<String, Double> carEntryRates; // Stores the rate at which each car entered
     private int vipSlots;
     private double hourlyRate;
     private double totalRevenue;
@@ -20,8 +21,9 @@ public class ParkingLot {
         this.parkedCars = new HashMap<>();
         this.parkingRates = new HashMap<>();
         this.entryTimes = new HashMap<>();
+        this.carEntryRates = new HashMap<>();
         this.vipSlots = totalSlots / 5; // 20% VIP slots
-        this.hourlyRate = 10.0; // $10 per hour
+        this.hourlyRate = 10.0; // ₹10 per hour
         this.totalRevenue = 0;
 
         // Initialize slots with VIP designation
@@ -32,9 +34,9 @@ public class ParkingLot {
         }
 
         // Initialize special rates
-        parkingRates.put("VIP", 20.0);
-        parkingRates.put("REGULAR", 10.0);
-        parkingRates.put("WEEKEND", 15.0);
+        parkingRates.put("REGULAR", 20.0); // ₹20 for regular
+        parkingRates.put("VIP", 20.0);     // Same as regular for now
+        parkingRates.put("WEEKEND", 30.0); // 50% extra of regular rate
     }
 
     // Allocate nearest available slot
@@ -60,6 +62,17 @@ public class ParkingLot {
         slot.parkCar(car);
         parkedCars.put(numberPlate, slot);
         entryTimes.put(numberPlate, LocalDateTime.now());
+        
+        // Store current rates for this car
+        LocalDateTime now = LocalDateTime.now();
+        double regularRate = parkingRates.get("REGULAR");
+        if (now.getDayOfWeek().getValue() >= 6) {
+            // If parking on weekend, store weekend rate
+            carEntryRates.put(numberPlate, parkingRates.get("WEEKEND"));
+        } else {
+            // Store regular rate
+            carEntryRates.put(numberPlate, regularRate);
+        }
 
         System.out.println("✅ Car " + numberPlate + " parked at " + 
                          (slot.isVip() ? "VIP " : "") + "Slot " + slot.getId());
@@ -76,16 +89,23 @@ public class ParkingLot {
         LocalDateTime entryTime = entryTimes.get(numberPlate);
         LocalDateTime exitTime = LocalDateTime.now();
         
-        double charge = calculateParkingCharge(numberPlate, entryTime, exitTime, slot.isVip());
+        // Get the rate before removing car data
+        double rate = carEntryRates.getOrDefault(numberPlate, parkingRates.get("REGULAR"));
+        
+        // Calculate charge based on the stored rate
+        long hours = Duration.between(entryTime, exitTime).toHours() + 1;
+        double charge = hours * rate;
         totalRevenue += charge;
 
+        // Clean up
         slot.removeCar();
         availableSlots.add(slot.getId());
         parkedCars.remove(numberPlate);
         entryTimes.remove(numberPlate);
+        carEntryRates.remove(numberPlate);
 
         System.out.printf("🅿️ Car %s removed from Slot %d\n", numberPlate, slot.getId());
-        System.out.printf("💰 Parking charge: $%.2f\n", charge);
+        System.out.printf("💰 Parking charge: ₹%.2f (at rate: ₹%.2f per hour)\n", charge, rate);
         return charge;
     }
 
@@ -174,23 +194,18 @@ public class ParkingLot {
         Car car = new Car(numberPlate);
         slot.parkCar(car);
         parkedCars.put(numberPlate, slot);
-        entryTimes.put(numberPlate, java.time.LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+        entryTimes.put(numberPlate, now);
+        
+        // Store the rate at entry time
+        if (now.getDayOfWeek().getValue() >= 6) {
+            carEntryRates.put(numberPlate, parkingRates.get("WEEKEND"));
+        } else {
+            carEntryRates.put(numberPlate, parkingRates.get("REGULAR"));
+        }
 
         System.out.println("✅ Car " + numberPlate + " parked at " + 
                          (slot.isVip() ? "VIP " : "") + "Slot " + slot.getId());
-    }
-
-    private double calculateParkingCharge(String numberPlate, LocalDateTime entry, 
-                                        LocalDateTime exit, boolean isVip) {
-        long hours = Duration.between(entry, exit).toHours() + 1;
-        double rate = isVip ? parkingRates.get("VIP") : parkingRates.get("REGULAR");
-        
-        // Weekend surcharge
-        if (exit.getDayOfWeek().getValue() >= 6) {
-            rate = parkingRates.get("WEEKEND");
-        }
-
-        return hours * rate;
     }
 
     public void displayStatistics() {
@@ -199,7 +214,7 @@ public class ParkingLot {
         System.out.println("VIP Slots: " + vipSlots);
         System.out.println("Available Slots: " + availableSlots.size());
         System.out.println("Occupied Slots: " + parkedCars.size());
-        System.out.printf("Total Revenue: $%.2f\n", totalRevenue);
+        System.out.printf("Total Revenue: ₹%.2f\n", totalRevenue);
         System.out.println("========================\n");
     }
 
@@ -209,17 +224,27 @@ public class ParkingLot {
 
     public void updateParkingRate(String type, double newRate) {
         if (parkingRates.containsKey(type)) {
-            parkingRates.put(type, newRate);
-            System.out.printf("Updated %s rate to $%.2f\n", type, newRate);
-        }
-    }
-
-    public void setRate(String rateType, double rate) {
-        if (parkingRates.containsKey(rateType)) {
-            parkingRates.put(rateType, rate);
-            System.out.printf("✅ %s rate updated to $%.2f\n", rateType, rate);
+            double oldRate = parkingRates.get(type);
+            
+            if (type.equals("REGULAR")) {
+                // Update regular rate
+                parkingRates.put("REGULAR", newRate);
+                // Update VIP rate to match regular
+                parkingRates.put("VIP", newRate);
+                // Update weekend rate to be 50% extra of regular
+                parkingRates.put("WEEKEND", newRate * 1.5);
+                
+                System.out.printf("✅ Regular rate updated from ₹%.2f to ₹%.2f\n", oldRate, newRate);
+                System.out.printf("✅ VIP rate updated to match regular: ₹%.2f\n", newRate);
+                System.out.printf("✅ Weekend rate updated to ₹%.2f (50%% extra)\n", newRate * 1.5);
+            } else if (type.equals("WEEKEND")) {
+                System.out.println("❌ Weekend rate is automatically set to 50% extra of regular rate");
+            } else if (type.equals("VIP")) {
+                System.out.println("❌ VIP rate is currently set to match regular rate");
+            }
         } else {
-            System.out.println("❌ Invalid rate type: " + rateType);
+            System.out.println("❌ Invalid rate type: " + type + 
+                             "\nValid types are: VIP, REGULAR, WEEKEND");
         }
     }
 
