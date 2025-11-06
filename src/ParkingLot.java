@@ -10,6 +10,7 @@ public class ParkingLot {
     private Map<String, Slot> parkedCars;
     private Map<String, Double> parkingRates;
     private Map<String, LocalDateTime> entryTimes;
+    private Map<String, String> carRateType; // stores VIP/REGULAR type per car
     private int vipSlots;
     private double hourlyRate;
     private double totalRevenue;
@@ -20,6 +21,7 @@ public class ParkingLot {
         this.parkedCars = new HashMap<>();
         this.parkingRates = new HashMap<>();
         this.entryTimes = new HashMap<>();
+        this.carRateType = new HashMap<>();
         this.vipSlots = totalSlots / 5; // 20% VIP slots
         this.hourlyRate = 10.0; // $10 per hour
         this.totalRevenue = 0;
@@ -60,8 +62,9 @@ public class ParkingLot {
         slot.parkCar(car);
         parkedCars.put(numberPlate, slot);
         entryTimes.put(numberPlate, LocalDateTime.now());
+        carRateType.put(numberPlate, isVip ? "VIP" : "REGULAR"); // store rate type
 
-        System.out.println("✅ Car " + numberPlate + " parked at " + 
+        System.out.println("✅ Car " + numberPlate + " parked at " +
                          (slot.isVip() ? "VIP " : "") + "Slot " + slot.getId());
     }
 
@@ -75,14 +78,16 @@ public class ParkingLot {
         Slot slot = parkedCars.get(numberPlate);
         LocalDateTime entryTime = entryTimes.get(numberPlate);
         LocalDateTime exitTime = LocalDateTime.now();
-        
-        double charge = calculateParkingCharge(numberPlate, entryTime, exitTime, slot.isVip());
+
+        String rateType = carRateType.getOrDefault(numberPlate, slot.isVip() ? "VIP" : "REGULAR");
+        double charge = calculateParkingCharge(numberPlate, entryTime, exitTime, rateType);
         totalRevenue += charge;
 
         slot.removeCar();
         availableSlots.add(slot.getId());
         parkedCars.remove(numberPlate);
         entryTimes.remove(numberPlate);
+        carRateType.remove(numberPlate);
 
         System.out.printf("🅿️ Car %s removed from Slot %d\n", numberPlate, slot.getId());
         System.out.printf("💰 Parking charge: $%.2f\n", charge);
@@ -175,16 +180,17 @@ public class ParkingLot {
         slot.parkCar(car);
         parkedCars.put(numberPlate, slot);
         entryTimes.put(numberPlate, java.time.LocalDateTime.now());
+        carRateType.put(numberPlate, isVip ? "VIP" : "REGULAR");
 
-        System.out.println("✅ Car " + numberPlate + " parked at " + 
+        System.out.println("✅ Car " + numberPlate + " parked at " +
                          (slot.isVip() ? "VIP " : "") + "Slot " + slot.getId());
     }
 
-    private double calculateParkingCharge(String numberPlate, LocalDateTime entry, 
-                                        LocalDateTime exit, boolean isVip) {
+    private double calculateParkingCharge(String numberPlate, LocalDateTime entry,
+                                          LocalDateTime exit, String rateType) {
         long hours = Duration.between(entry, exit).toHours() + 1;
-        double rate = isVip ? parkingRates.get("VIP") : parkingRates.get("REGULAR");
-        
+        double rate = parkingRates.getOrDefault(rateType, 10.0);
+
         // Weekend surcharge
         if (exit.getDayOfWeek().getValue() >= 6) {
             rate = parkingRates.get("WEEKEND");
@@ -223,7 +229,6 @@ public class ParkingLot {
         }
     }
 
-    // Add these new methods
     public double getTotalRevenue() {
         return totalRevenue;
     }
