@@ -58,8 +58,8 @@ public class Main {
                 case 1: {
                     System.out.print("Enter car number plate: ");
                     String num = sc.next();
-                    System.out.print("Is VIP? (y/n): ");
-                    boolean isVip = sc.next().toLowerCase().startsWith("y");
+                    System.out.print("Enter parking type (REGULAR / VIP / WEEKEND): ");
+                    String type = sc.next().toUpperCase();
                     // Select region
                     System.out.println("Select region:");
                     for (int i = 0; i < regions.size(); i++) {
@@ -75,7 +75,7 @@ public class Main {
                     if (exists) {
                         System.out.println("⚠️ A car with this number plate is already parked in a region.");
                     } else {
-                        regions.get(r - 1).getParkingLot().parkCar(num, isVip);
+                        regions.get(r - 1).getParkingLot().parkCar(num, type);
                     }
                     break;
                 }

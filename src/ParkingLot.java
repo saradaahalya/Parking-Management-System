@@ -10,7 +10,7 @@ public class ParkingLot {
     private Map<String, Slot> parkedCars;
     private Map<String, Double> parkingRates;
     private Map<String, LocalDateTime> entryTimes;
-    private Map<String, String> carRateType; // stores VIP/REGULAR type per car
+    private Map<String, String> carRateType; // stores VIP/REGULAR/WEEKEND type per car
     private int vipSlots;
     private double hourlyRate;
     private double totalRevenue;
@@ -22,8 +22,8 @@ public class ParkingLot {
         this.parkingRates = new HashMap<>();
         this.entryTimes = new HashMap<>();
         this.carRateType = new HashMap<>();
-        this.vipSlots = totalSlots / 5; // 20% VIP slots
-        this.hourlyRate = 10.0; // $10 per hour
+        this.vipSlots = Math.max(1, totalSlots / 5); // ~20% VIP slots (at least 1)
+        this.hourlyRate = 10.0; // fallback hourly rate
         this.totalRevenue = 0;
 
         // Initialize slots with VIP designation
@@ -39,8 +39,18 @@ public class ParkingLot {
         parkingRates.put("WEEKEND", 15.0);
     }
 
-    // Allocate nearest available slot
-    public void parkCar(String numberPlate, boolean isVip) {
+    /**
+     * Park a car using an explicit rateType.
+     * rateType must be one of: "VIP", "REGULAR", "WEEKEND" (case-insensitive accepted)
+     */
+    public void parkCar(String numberPlate, String rateType) {
+        if (numberPlate == null || numberPlate.isEmpty()) {
+            System.out.println("❌ Invalid plate.");
+            return;
+        }
+
+        rateType = normalizeRateType(rateType);
+
         if (availableSlots.isEmpty()) {
             System.out.println("❌ Parking Full! No available slots.");
             return;
@@ -51,7 +61,7 @@ public class ParkingLot {
             return;
         }
 
-        int slotId = findAppropriateSlot(isVip);
+        int slotId = findAppropriateSlot(rateType);
         if (slotId == -1) {
             System.out.println("❌ No appropriate slots available!");
             return;
@@ -62,13 +72,16 @@ public class ParkingLot {
         slot.parkCar(car);
         parkedCars.put(numberPlate, slot);
         entryTimes.put(numberPlate, LocalDateTime.now());
-        carRateType.put(numberPlate, isVip ? "VIP" : "REGULAR"); // store rate type
+        carRateType.put(numberPlate, rateType);
 
         System.out.println("✅ Car " + numberPlate + " parked at " +
-                         (slot.isVip() ? "VIP " : "") + "Slot " + slot.getId());
+                         (slot.isVip() ? "VIP " : "") + "Slot " + slot.getId() +
+                         " [" + rateType + "]");
     }
 
-    // Remove car and free slot
+    /**
+     * Remove car and compute charge based on stored rateType for that car.
+     */
     public double removeCar(String numberPlate) {
         if (!parkedCars.containsKey(numberPlate)) {
             System.out.println("⚠️ Car not found in parking lot!");
@@ -80,7 +93,7 @@ public class ParkingLot {
         LocalDateTime exitTime = LocalDateTime.now();
 
         String rateType = carRateType.getOrDefault(numberPlate, slot.isVip() ? "VIP" : "REGULAR");
-        double charge = calculateParkingCharge(numberPlate, entryTime, exitTime, rateType);
+        double charge = calculateParkingCharge(entryTime, exitTime, rateType);
         totalRevenue += charge;
 
         slot.removeCar();
@@ -110,6 +123,7 @@ public class ParkingLot {
             System.out.println("🔍 Car " + numberPlate + " found at Slot " + slot.getId());
             return true;
         } else {
+            // don't spam logs for UI search; keep consistent with previous behavior
             System.out.println("❌ Car " + numberPlate + " not found!");
             return false;
         }
@@ -120,28 +134,33 @@ public class ParkingLot {
         return slots.get(id - 1);
     }
 
-    private int findAppropriateSlot(boolean isVip) {
-        if (isVip) {
-            // Try to find VIP slot first
-            for (Integer slotId : availableSlots) {
-                if (getSlotById(slotId).isVip()) {
+    /**
+     * Choose a slot based on rateType:
+     * - "VIP" => prefer VIP slots (search availableSlots for a VIP slot)
+     * - others ("REGULAR","WEEKEND") => any available slot (nearest)
+     */
+    private int findAppropriateSlot(String rateType) {
+        if ("VIP".equals(rateType)) {
+            for (Integer slotId : new ArrayList<>(availableSlots)) {
+                Slot s = getSlotById(slotId);
+                if (s != null && s.isVip()) {
                     availableSlots.remove(slotId);
                     return slotId;
                 }
             }
+            // no VIP available -> fallback to any slot
         }
-        return availableSlots.poll();
+        Integer next = availableSlots.poll();
+        return next == null ? -1 : next;
     }
 
     // Peek an appropriate slot without removing it from available pool
-    public int peekAppropriateSlot(boolean isVip) {
+    public int peekAppropriateSlot(String rateType) {
         if (availableSlots.isEmpty()) return -1;
-        if (isVip) {
+        if ("VIP".equals(rateType)) {
             for (Integer slotId : availableSlots) {
                 Slot s = getSlotById(slotId);
-                if (s != null && s.isVip()) {
-                    return slotId;
-                }
+                if (s != null && s.isVip()) return slotId;
             }
             return -1;
         } else {
@@ -150,8 +169,17 @@ public class ParkingLot {
         }
     }
 
-    // Park car at a specific slot id (used when user confirms a suggested slot)
-    public void parkCarAt(String numberPlate, boolean isVip, int slotId) {
+    /**
+     * Park at a specific slot id, storing the provided rateType for future billing.
+     */
+    public void parkCarAt(String numberPlate, String rateType, int slotId) {
+        if (numberPlate == null || numberPlate.isEmpty()) {
+            System.out.println("❌ Invalid plate.");
+            return;
+        }
+
+        rateType = normalizeRateType(rateType);
+
         if (availableSlots.isEmpty()) {
             System.out.println("❌ Parking Full! No available slots.");
             return;
@@ -179,24 +207,47 @@ public class ParkingLot {
         Car car = new Car(numberPlate);
         slot.parkCar(car);
         parkedCars.put(numberPlate, slot);
-        entryTimes.put(numberPlate, java.time.LocalDateTime.now());
-        carRateType.put(numberPlate, isVip ? "VIP" : "REGULAR");
+        entryTimes.put(numberPlate, LocalDateTime.now());
+        carRateType.put(numberPlate, rateType);
 
         System.out.println("✅ Car " + numberPlate + " parked at " +
-                         (slot.isVip() ? "VIP " : "") + "Slot " + slot.getId());
+                         (slot.isVip() ? "VIP " : "") + "Slot " + slot.getId() +
+                         " [" + rateType + "]");
     }
 
-    private double calculateParkingCharge(String numberPlate, LocalDateTime entry,
-                                          LocalDateTime exit, String rateType) {
+    /**
+     * Calculate parking charge using stored rateType.
+     * Behavior:
+     *  - If rateType == "WEEKEND" -> use WEEKEND rate
+     *  - Else if exit day is weekend -> use WEEKEND rate (surcharge)
+     *  - Else use rate corresponding to rateType (VIP/REGULAR)
+     */
+    private double calculateParkingCharge(LocalDateTime entry, LocalDateTime exit, String rateType) {
         long hours = Duration.between(entry, exit).toHours() + 1;
-        double rate = parkingRates.getOrDefault(rateType, 10.0);
+        rateType = normalizeRateType(rateType);
 
-        // Weekend surcharge
-        if (exit.getDayOfWeek().getValue() >= 6) {
-            rate = parkingRates.get("WEEKEND");
+        double rate;
+        if ("WEEKEND".equals(rateType)) {
+            rate = parkingRates.getOrDefault("WEEKEND", hourlyRate);
+        } else {
+            // If exit happens on weekend, apply weekend rate as surcharge
+            if (exit.getDayOfWeek().getValue() >= 6) {
+                rate = parkingRates.getOrDefault("WEEKEND", hourlyRate);
+            } else {
+                rate = parkingRates.getOrDefault(rateType, hourlyRate);
+            }
         }
 
         return hours * rate;
+    }
+
+    // Normalize input (case-insensitive) and default to REGULAR if unknown
+    private String normalizeRateType(String rt) {
+        if (rt == null) return "REGULAR";
+        rt = rt.trim().toUpperCase();
+        if (rt.equals("VIP")) return "VIP";
+        if (rt.equals("WEEKEND")) return "WEEKEND";
+        return "REGULAR";
     }
 
     public void displayStatistics() {
@@ -214,19 +265,17 @@ public class ParkingLot {
     }
 
     public void updateParkingRate(String type, double newRate) {
+        type = type == null ? "" : type.trim().toUpperCase();
         if (parkingRates.containsKey(type)) {
             parkingRates.put(type, newRate);
             System.out.printf("Updated %s rate to $%.2f\n", type, newRate);
+        } else {
+            System.out.println("❌ Invalid rate type: " + type);
         }
     }
 
     public void setRate(String rateType, double rate) {
-        if (parkingRates.containsKey(rateType)) {
-            parkingRates.put(rateType, rate);
-            System.out.printf("✅ %s rate updated to $%.2f\n", rateType, rate);
-        } else {
-            System.out.println("❌ Invalid rate type: " + rateType);
-        }
+        updateParkingRate(rateType, rate);
     }
 
     public double getTotalRevenue() {

@@ -16,7 +16,7 @@ public class ParkingUI extends JFrame {
     private JComboBox<String> rateTypeCombo;
     private JTextField rateField;
     private JComboBox<String> regionCombo;
-    
+
     public ParkingUI(java.util.List<Region> regions) {
         this.regions = regions;
         this.currentRegion = (regions == null || regions.isEmpty()) ? null : regions.get(0);
@@ -45,13 +45,13 @@ public class ParkingUI extends JFrame {
 
     private JPanel createTopPanel() {
         JPanel panel = new JPanel(new BorderLayout());
-        
+
         // Header with stats
         JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 5));
         revenueLabel = new JLabel("Total Revenue: $0.00");
         revenueLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
         headerPanel.add(revenueLabel);
-        
+
         // Region selector
         JPanel regionPanel = new JPanel();
         regionCombo = new JComboBox<>();
@@ -66,20 +66,20 @@ public class ParkingUI extends JFrame {
         regionPanel.add(new JLabel("Region:"));
         regionPanel.add(regionCombo);
         headerPanel.add(regionPanel);
-        
+
         // Rate management
         JPanel ratePanel = new JPanel();
         rateTypeCombo = new JComboBox<>(new String[]{"REGULAR", "VIP", "WEEKEND"});
         rateField = new JTextField(8);
         JButton updateRateBtn = new JButton("Update Rate");
         updateRateBtn.addActionListener(e -> updateRate());
-        
+
         ratePanel.add(new JLabel("Rate Type:"));
         ratePanel.add(rateTypeCombo);
         ratePanel.add(new JLabel("New Rate:"));
         ratePanel.add(rateField);
         ratePanel.add(updateRateBtn);
-        
+
         headerPanel.add(ratePanel);
         panel.add(headerPanel, BorderLayout.NORTH);
 
@@ -87,7 +87,7 @@ public class ParkingUI extends JFrame {
         slotPanel = new JPanel(new GridLayout(0, 5, 10, 10));
         slotPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         updateSlotDisplay();
-        
+
         JScrollPane slotScroll = new JScrollPane(slotPanel);
         panel.add(slotScroll, BorderLayout.CENTER);
 
@@ -100,14 +100,14 @@ public class ParkingUI extends JFrame {
 
     private JPanel createBottomPanel() {
         JPanel panel = new JPanel(new BorderLayout());
-        
+
         consoleArea = new JTextArea(10, 50);
         consoleArea.setEditable(false);
         consoleArea.setFont(new Font("Consolas", Font.PLAIN, 14));
-        
+
         JScrollPane scrollPane = new JScrollPane(consoleArea);
         panel.add(scrollPane, BorderLayout.CENTER);
-        
+
         return panel;
     }
 
@@ -151,7 +151,7 @@ public class ParkingUI extends JFrame {
     private void parkCar() {
         JTextField plateField = new JTextField();
         JTextField ownerField = new JTextField();
-        JComboBox<String> typeCombo = new JComboBox<>(new String[]{"REGULAR", "VIP"});
+        JComboBox<String> typeCombo = new JComboBox<>(new String[]{"REGULAR", "VIP", "WEEKEND"});
         JTextField colorField = new JTextField();
         JComboBox<String> dialogRegionCombo = new JComboBox<>();
         for (Region r : regions) dialogRegionCombo.addItem(r.getName());
@@ -164,16 +164,16 @@ public class ParkingUI extends JFrame {
             "Color:", colorField
         };
 
-        int result = JOptionPane.showConfirmDialog(this, fields, 
+        int result = JOptionPane.showConfirmDialog(this, fields,
             "Enter Car Details", JOptionPane.OK_CANCEL_OPTION);
-            
+
         if (result == JOptionPane.OK_OPTION) {
             String plate = plateField.getText().trim();
             if (plate.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Number plate cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            boolean isVip = typeCombo.getSelectedItem().equals("VIP");
+            String rateType = (String) typeCombo.getSelectedItem();
             int sel = dialogRegionCombo.getSelectedIndex();
             Region target = (sel >= 0 && sel < regions.size()) ? regions.get(sel) : currentRegion;
 
@@ -190,7 +190,7 @@ public class ParkingUI extends JFrame {
                 return;
             }
 
-            int suggested = target.getParkingLot().peekAppropriateSlot(isVip);
+            int suggested = target.getParkingLot().peekAppropriateSlot(rateType);
             if (suggested == -1) {
                 JOptionPane.showMessageDialog(this, "No appropriate slots available in " + target.getName(), "Info", JOptionPane.INFORMATION_MESSAGE);
                 return;
@@ -203,8 +203,8 @@ public class ParkingUI extends JFrame {
 
             if (confirm == JOptionPane.OK_OPTION) {
                 // actually park at the suggested slot
-                target.getParkingLot().parkCarAt(plate, isVip, suggested);
-                consoleArea.append("Parked " + plate + " in " + target.getName() + " at slot " + suggested + "\n");
+                target.getParkingLot().parkCarAt(plate, rateType, suggested);
+                consoleArea.append("Parked " + plate + " in " + target.getName() + " at slot " + suggested + " [" + rateType + "]\n");
             } else {
                 consoleArea.append("Parking cancelled for " + plate + "\n");
             }
@@ -286,12 +286,12 @@ public class ParkingUI extends JFrame {
     private void updateRate() {
         String rateType = (String) rateTypeCombo.getSelectedItem();
         String rateValue = rateField.getText().trim();
-        
+
         if (rateValue.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Rate value cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
+
         try {
             double rate = Double.parseDouble(rateValue);
             if (currentRegion != null) currentRegion.getParkingLot().setRate(rateType, rate);
@@ -305,10 +305,10 @@ public class ParkingUI extends JFrame {
         int totalCars = currentRegion == null ? 0 : currentRegion.getParkingLot().getTotalCars();
         double totalRevenue = currentRegion == null ? 0.0 : currentRegion.getParkingLot().getTotalRevenue();
         DecimalFormat df = new DecimalFormat("#.##");
-        
+
         String stats = "Total Cars: " + totalCars + "\n" +
                        "Total Revenue: $" + df.format(totalRevenue);
-        
+
         JOptionPane.showMessageDialog(this, stats, "Parking Statistics", JOptionPane.INFORMATION_MESSAGE);
     }
 
