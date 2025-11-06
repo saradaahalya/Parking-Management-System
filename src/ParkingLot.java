@@ -74,9 +74,9 @@ public class ParkingLot {
         entryTimes.put(numberPlate, LocalDateTime.now());
         carRateType.put(numberPlate, rateType);
 
-        System.out.println("✅ Car " + numberPlate + " parked at " +
-                         (slot.isVip() ? "VIP " : "") + "Slot " + slot.getId() +
-                         " [" + rateType + "]");
+        System.out.println("✅ Car " + numberPlate + " parked at Slot " + slot.getId() +
+                 " [" + rateType + "]");
+
     }
 
     /**
