@@ -1,36 +1,22 @@
 package src;
 
 import javax.swing.*;
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
-    public static void main(String[] args) {
-        System.out.println("=== 🚗 Advanced Parking Management System ===");
-        System.out.println("1. Launch GUI Mode");
-        System.out.println("2. Launch CLI Mode");
-        System.out.print("Select mode: ");
 
+    public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
+
+        System.out.println("=== 🚗 Advanced Parking Management System ===");
+        System.out.println("Choose mode:");
+        System.out.println("1. Graphical User Interface (GUI)");
+        System.out.println("2. Command Line Interface (CLI)");
+        System.out.print("Enter your choice: ");
         int mode = sc.nextInt();
 
-        if (mode == 1) {
-            SwingUtilities.invokeLater(() -> {
-                java.util.List<Region> regions = new java.util.ArrayList<>();
-                regions.add(new Region("PRP Parking", new ParkingLot(50)));
-                regions.add(new Region("SJT Parking", new ParkingLot(25)));
-                regions.add(new Region("TT Parking", new ParkingLot(20)));
-                regions.add(new Region("Lake side Parking", new ParkingLot(25)));
-                regions.add(new Region("Woodys Parking", new ParkingLot(50)));
-                regions.add(new Region("Main gate Parking", new ParkingLot(40)));
-                new ParkingUI(regions);
-            });
-        } else {
-            runCliMode(sc);
-        }
-    }
-
-    private static void runCliMode(Scanner sc) {
-        java.util.List<Region> regions = new java.util.ArrayList<>();
+        // Create regions (used by both GUI and CLI)
+        java.util.List<Region> regions = new ArrayList<>();
         regions.add(new Region("PRP Parking", new ParkingLot(50)));
         regions.add(new Region("SJT Parking", new ParkingLot(25)));
         regions.add(new Region("TT Parking", new ParkingLot(20)));
@@ -38,6 +24,18 @@ public class Main {
         regions.add(new Region("Woodys Parking", new ParkingLot(50)));
         regions.add(new Region("Main gate Parking", new ParkingLot(40)));
 
+        if (mode == 1) {
+            // ✅ Launch GUI Mode
+            SwingUtilities.invokeLater(() -> new ParkingUI(regions));
+        } else if (mode == 2) {
+            // ✅ Launch CLI Mode
+            runCliMode(sc, regions);
+        } else {
+            System.out.println("❌ Invalid choice!");
+        }
+    }
+
+    private static void runCliMode(Scanner sc, java.util.List<Region> regions) {
         boolean running = true;
 
         while (running) {
@@ -53,7 +51,7 @@ public class Main {
 
             int choice = sc.nextInt();
             switch (choice) {
-                case 1: {
+                case 1 -> {
                     System.out.print("Enter car number plate: ");
                     String num = sc.next();
                     System.out.print("Enter parking type (REGULAR / VIP / WEEKEND): ");
@@ -68,23 +66,24 @@ public class Main {
 
                     Region selectedRegion = regions.get(r - 1);
 
-                    // Check if car already exists in any region
+                    // Check if car already exists
                     boolean exists = false;
-for (Region reg : regions) {
-    if (reg.getParkingLot().isCarParked(num)) { exists = true; break; }
-}
-
+                    for (Region reg : regions) {
+                        if (reg.getParkingLot().isCarParked(num)) {
+                            exists = true;
+                            break;
+                        }
+                    }
 
                     if (exists) {
-                        System.out.println("⚠️  A car with this number plate is already parked in a region.");
+                        System.out.println("⚠️  Car already parked in another region.");
                     } else {
                         selectedRegion.getParkingLot().parkCar(num, type);
                         System.out.println("✅ Car parked successfully in " + selectedRegion.getName());
                     }
-                    break;
                 }
 
-                case 2: {
+                case 2 -> {
                     System.out.print("Enter car number plate to remove: ");
                     String num = sc.next();
 
@@ -100,20 +99,20 @@ for (Region reg : regions) {
                         }
                     }
 
-                    if (!found) System.out.println("❌ Car not found in any region.");
-                    else System.out.printf("Parking charge: $%.2f\n", charge);
-                    break;
+                    if (!found)
+                        System.out.println("❌ Car not found in any region.");
+                    else
+                        System.out.printf("Parking charge: $%.2f\n", charge);
                 }
 
-                case 3: {
+                case 3 -> {
                     for (Region reg : regions) {
                         System.out.println("\n== " + reg.getName() + " ==");
                         reg.getParkingLot().displayStatus();
                     }
-                    break;
                 }
 
-                case 4: {
+                case 4 -> {
                     System.out.print("Enter car number plate to search: ");
                     String q = sc.next();
                     boolean found = false;
@@ -125,18 +124,19 @@ for (Region reg : regions) {
                         }
                     }
                     if (!found) System.out.println("❌ Car not found in any region.");
-                    break;
                 }
 
-                case 5: {
+                case 5 -> {
+                    double totalRevenue = 0;
                     for (Region reg : regions) {
                         System.out.println("\n== Statistics for " + reg.getName() + " ==");
                         reg.getParkingLot().displayStatistics();
+                        totalRevenue += reg.getParkingLot().getTotalRevenue();
                     }
-                    break;
+                    System.out.printf("\n💰 Total Revenue (All Regions): $%.2f\n", totalRevenue);
                 }
 
-                case 6: {
+                case 6 -> {
                     System.out.println("Select region to update rates:");
                     for (int i = 0; i < regions.size(); i++) {
                         System.out.printf("%d. %s\n", i + 1, regions.get(i).getName());
@@ -144,22 +144,16 @@ for (Region reg : regions) {
                     int r = sc.nextInt();
                     if (r < 1 || r > regions.size()) r = 1;
                     updateParkingRates(sc, regions.get(r - 1).getParkingLot());
-                    break;
                 }
 
-                case 7: {
+                case 7 -> {
                     System.out.println("👋 Exiting system. Goodbye!");
                     running = false;
-                    break;
                 }
 
-                default: {
-                    System.out.println("⚠️ Invalid choice! Try again.");
-                    break;
-                }
+                default -> System.out.println("⚠️ Invalid choice! Try again.");
             }
         }
-        sc.close();
     }
 
     private static void updateParkingRates(Scanner sc, ParkingLot parkingLot) {
