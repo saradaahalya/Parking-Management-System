@@ -117,17 +117,23 @@ public class ParkingLot {
     }
 
     // Search car by number plate (returns boolean for UI)
-    public boolean findCar(String numberPlate) {
-        if (parkedCars.containsKey(numberPlate)) {
-            Slot slot = parkedCars.get(numberPlate);
-            System.out.println("🔍 Car " + numberPlate + " found at Slot " + slot.getId());
-            return true;
-        } else {
-            // don't spam logs for UI search; keep consistent with previous behavior
-            System.out.println("❌ Car " + numberPlate + " not found!");
-            return false;
-        }
+    // Search car by number plate (returns boolean for UI)
+public boolean findCar(String numberPlate) {
+    if (parkedCars.containsKey(numberPlate)) {
+        Slot slot = parkedCars.get(numberPlate);
+        System.out.println("🔍 Car " + numberPlate + " found at Slot " + slot.getId());
+        return true;
+    } else {
+        System.out.println("❌ Car " + numberPlate + " not found!");
+        return false;
     }
+}
+
+// Silent check version for internal use (no prints)
+public boolean isCarParked(String numberPlate) {
+    return parkedCars.containsKey(numberPlate);
+}
+
 
     private Slot getSlotById(int id) {
         if (id <= 0 || id > slots.size()) return null;

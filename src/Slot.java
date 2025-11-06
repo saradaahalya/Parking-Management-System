@@ -51,10 +51,17 @@ public class Slot implements Comparable<Slot> {
 
     @Override
     public String toString() {
-        String prefix = isVip ? "VIP " : "";
-        return occupied ? 
-            prefix + "Slot " + id + " → " + car.getNumberPlate() + " (" + status + ")" :
-            prefix + "Slot " + id + " → [" + status + "]";
+        String slotStatus;
+        if (isOccupied()) {
+            slotStatus = "Occupied by " + car.getNumberPlate();
+        } else {
+            slotStatus = "Available";
+        }
+
+        return String.format("Slot %d [%s] - %s",
+                id,
+                isVip ? "VIP" : "Regular",
+                slotStatus);
     }
 
     @Override

@@ -15,7 +15,6 @@ public class Main {
 
         if (mode == 1) {
             SwingUtilities.invokeLater(() -> {
-                // Initialize 6 custom regions with specified slot counts
                 java.util.List<Region> regions = new java.util.ArrayList<>();
                 regions.add(new Region("PRP Parking", new ParkingLot(50)));
                 regions.add(new Region("SJT Parking", new ParkingLot(25)));
@@ -31,7 +30,6 @@ public class Main {
     }
 
     private static void runCliMode(Scanner sc) {
-        // Initialize 6 custom regions with specified slot counts
         java.util.List<Region> regions = new java.util.ArrayList<>();
         regions.add(new Region("PRP Parking", new ParkingLot(50)));
         regions.add(new Region("SJT Parking", new ParkingLot(25)));
@@ -60,57 +58,68 @@ public class Main {
                     String num = sc.next();
                     System.out.print("Enter parking type (REGULAR / VIP / WEEKEND): ");
                     String type = sc.next().toUpperCase();
-                    // Select region
+
                     System.out.println("Select region:");
                     for (int i = 0; i < regions.size(); i++) {
                         System.out.printf("%d. %s\n", i + 1, regions.get(i).getName());
                     }
                     int r = sc.nextInt();
                     if (r < 1 || r > regions.size()) r = 1;
-                    // Ensure the car isn't already parked in any region
+
+                    Region selectedRegion = regions.get(r - 1);
+
+                    // Check if car already exists in any region
                     boolean exists = false;
-                    for (Region reg : regions) {
-                        if (reg.getParkingLot().findCar(num)) { exists = true; break; }
-                    }
+for (Region reg : regions) {
+    if (reg.getParkingLot().isCarParked(num)) { exists = true; break; }
+}
+
+
                     if (exists) {
-                        System.out.println("⚠️ A car with this number plate is already parked in a region.");
+                        System.out.println("⚠️  A car with this number plate is already parked in a region.");
                     } else {
-                        regions.get(r - 1).getParkingLot().parkCar(num, type);
+                        selectedRegion.getParkingLot().parkCar(num, type);
+                        System.out.println("✅ Car parked successfully in " + selectedRegion.getName());
                     }
                     break;
                 }
+
                 case 2: {
                     System.out.print("Enter car number plate to remove: ");
                     String num = sc.next();
-                    // Try removing from all regions
+
                     double charge = 0.0;
                     boolean found = false;
+
                     for (Region reg : regions) {
                         if (reg.getParkingLot().findCar(num)) {
                             charge = reg.getParkingLot().removeCar(num);
                             found = true;
+                            System.out.println("✅ Car removed from " + reg.getName());
                             break;
                         }
                     }
+
                     if (!found) System.out.println("❌ Car not found in any region.");
-                    System.out.printf("Parking charge: $%.2f\n", charge);
+                    else System.out.printf("Parking charge: $%.2f\n", charge);
                     break;
                 }
+
                 case 3: {
-                    // Display status per region
                     for (Region reg : regions) {
                         System.out.println("\n== " + reg.getName() + " ==");
                         reg.getParkingLot().displayStatus();
                     }
                     break;
                 }
+
                 case 4: {
                     System.out.print("Enter car number plate to search: ");
                     String q = sc.next();
                     boolean found = false;
                     for (Region reg : regions) {
                         if (reg.getParkingLot().findCar(q)) {
-                            System.out.println("Found in " + reg.getName());
+                            System.out.println("✅ Found in " + reg.getName());
                             found = true;
                             break;
                         }
@@ -118,6 +127,7 @@ public class Main {
                     if (!found) System.out.println("❌ Car not found in any region.");
                     break;
                 }
+
                 case 5: {
                     for (Region reg : regions) {
                         System.out.println("\n== Statistics for " + reg.getName() + " ==");
@@ -125,21 +135,24 @@ public class Main {
                     }
                     break;
                 }
+
                 case 6: {
-                    // choose region to update rates for
                     System.out.println("Select region to update rates:");
                     for (int i = 0; i < regions.size(); i++) {
                         System.out.printf("%d. %s\n", i + 1, regions.get(i).getName());
                     }
-                    int r = sc.nextInt(); if (r < 1 || r > regions.size()) r = 1;
+                    int r = sc.nextInt();
+                    if (r < 1 || r > regions.size()) r = 1;
                     updateParkingRates(sc, regions.get(r - 1).getParkingLot());
                     break;
                 }
+
                 case 7: {
                     System.out.println("👋 Exiting system. Goodbye!");
                     running = false;
                     break;
                 }
+
                 default: {
                     System.out.println("⚠️ Invalid choice! Try again.");
                     break;
